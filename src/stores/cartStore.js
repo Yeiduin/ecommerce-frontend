@@ -1,7 +1,6 @@
 // src/stores/cartStore.js
 import { create } from "zustand";
 
-// Función auxiliar para obtener el estado inicial del carrito desde localStorage
 const getInitialCartState = () => {
   try {
     const cartInfo = localStorage.getItem("cart_info");
@@ -9,7 +8,6 @@ const getInitialCartState = () => {
       return { items: [], shippingAddress: {}, paymentMethod: "PayPal" };
     }
     const parsedInfo = JSON.parse(cartInfo);
-    // Aseguramos que todos los campos tengan un valor por defecto si no están en localStorage
     return {
       items: parsedInfo.items || [],
       shippingAddress: parsedInfo.shippingAddress || {},
@@ -21,7 +19,6 @@ const getInitialCartState = () => {
   }
 };
 
-// Función auxiliar para actualizar el localStorage con el nuevo estado
 const updateLocalStorage = (state) => {
   const { items, shippingAddress, paymentMethod } = state;
   localStorage.setItem(
@@ -35,18 +32,18 @@ const useCartStore = create((set) => ({
   shippingAddress: getInitialCartState().shippingAddress,
   paymentMethod: getInitialCartState().paymentMethod,
 
-  addItem: (product) =>
+  addItem: (product, qty = 1) =>
     set((state) => {
       const existingItem = state.items.find((item) => item._id === product._id);
       let updatedItems;
       if (existingItem) {
         updatedItems = state.items.map((item) =>
           item._id === product._id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + qty }
             : item
         );
       } else {
-        updatedItems = [...state.items, { ...product, quantity: 1 }];
+        updatedItems = [...state.items, { ...product, quantity: qty }];
       }
       const newState = { ...state, items: updatedItems };
       updateLocalStorage(newState);

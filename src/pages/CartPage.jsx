@@ -4,7 +4,14 @@ import useCartStore from '../stores/cartStore';
 import useAuthStore from '../stores/authStore';
 
 function CartPage() {
-  const { items, removeItem, increaseQuantity, decreaseQuantity } = useCartStore();
+  // ===== CORRECCIÓN AQUÍ: Usamos selectores atómicos =====
+  // Pedimos cada pieza del estado o acción que necesitamos por separado.
+  const items = useCartStore((state) => state.items);
+  const removeItem = useCartStore((state) => state.removeItem);
+  const increaseQuantity = useCartStore((state) => state.increaseQuantity);
+  const decreaseQuantity = useCartStore((state) => state.decreaseQuantity);
+  // =========================================================
+
   const { user } = useAuthStore();
   const navigate = useNavigate();
   
@@ -15,7 +22,7 @@ function CartPage() {
     if (user) {
       navigate('/envio');
     } else {
-      navigate('/login');
+      navigate('/login?redirect=/envio'); // Pequeña mejora: si va a login, lo redirigimos al envío después
     }
   };
 
@@ -68,4 +75,5 @@ function CartPage() {
     </div>
   );
 }
+
 export default CartPage;
