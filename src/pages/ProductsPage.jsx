@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import ProductCard from '../components/ProductCard.jsx';
+import Pagination from '../components/ui/Pagination.jsx';
 
 function ProductsPage() {
   // Estado para los datos y la UI
@@ -11,7 +12,8 @@ function ProductsPage() {
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const [pagination, setPagination] = useState({});
+  
   // Estado para el ordenamiento
   const [sort, setSort] = useState('relevance');
   
@@ -22,7 +24,6 @@ function ProductsPage() {
   useEffect(() => {
     const fetchFilters = async () => {
       try {
-        // Hacemos las dos peticiones en paralelo para más eficiencia
         const [catRes, brandRes] = await Promise.all([
           axios.get('http://localhost:4000/api/categories'),
           axios.get('http://localhost:4000/api/products/brands')
@@ -34,27 +35,29 @@ function ProductsPage() {
       }
     };
     fetchFilters();
-  }, []); // Se ejecuta solo una vez al montar el componente
+  }, []);
 
-  // Efecto para obtener los productos cada vez que los filtros o el orden cambian
+  // Efecto principal para obtener los productos
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       setError(null);
       try {
-        // Creamos los parámetros a partir de la URL actual
         const params = new URLSearchParams(searchParams);
-
-        // Añadimos el parámetro de ordenamiento si no es el de por defecto
         if (sort && sort !== 'relevance') {
           params.set('sort', sort);
         } else {
           params.delete('sort');
         }
         
-        const response = await axios.get(`http://localhost:4000/api/products?${params.toString()}`);
-        setProducts(response.data);
-
+        const { data } = await axios.get(`http://localhost:4000/api/products?${params.toString()}`);
+        
+        setProducts(data.products);
+        setPagination({
+          currentPage: data.page,
+          totalPages: data.pages,
+          totalProducts: data.total,
+        });
       } catch (err) {
         setError('No se pudieron cargar los productos.');
         console.error(err);
@@ -62,20 +65,34 @@ function ProductsPage() {
         setLoading(false);
       }
     };
-
     fetchProducts();
-  }, [searchParams, sort]); // Depende de los parámetros de la URL y del estado de ordenamiento
+  }, [searchParams, sort]);
 
-  // Función para manejar el cambio de filtros (categoría o marca)
+  // ===== FUNCIÓN CORREGIDA Y DEFINITIVA =====
   const handleFilterChange = (filterType, value) => {
-    const newSearchParams = new URLSearchParams(); // Empezamos de cero para no mezclar filtros
-    if (value !== 'Todos') {
+    const newSearchParams = new URLSearchParams(searchParams);
+    
+    // Al hacer clic en un filtro de categoría o marca, SIEMPRE borramos la búsqueda anterior.
+    newSearchParams.delete('search');
+
+    if (value === 'Todos') {
+      newSearchParams.delete(filterType);
+    } else {
       newSearchParams.set(filterType, value);
     }
+    
+    newSearchParams.set('page', '1');
     setSearchParams(newSearchParams);
   };
   
-  // Leemos los filtros actuales de la URL para resaltar la opción activa
+  // Función para cambiar de página (sin cambios)
+  const handlePageChange = (page) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('page', page);
+    setSearchParams(newParams);
+  };
+  
+  // Leemos los filtros actuales de la URL para el estado de la UI
   const currentCategory = searchParams.get('category') || 'Todos';
   const currentBrand = searchParams.get('brand') || 'Todos';
   const currentSearch = searchParams.get('search') || '';
@@ -91,7 +108,6 @@ function ProductsPage() {
         <aside className="md:w-1/4 lg:w-1/5">
           <div className="bg-slate-800 p-4 rounded-lg sticky top-28">
             <h2 className="text-xl font-bold mb-4 border-b border-slate-700 pb-2">Filtros</h2>
-            
             <div className="mb-6">
               <h3 className="font-semibold mb-2">Categorías</h3>
               <ul className="space-y-2 text-sm">
@@ -103,7 +119,6 @@ function ProductsPage() {
                 ))}
               </ul>
             </div>
-            
             <div className="mb-6">
               <h3 className="font-semibold mb-2">Marcas</h3>
               <ul className="space-y-2 text-sm">
@@ -120,9 +135,7 @@ function ProductsPage() {
 
         <main className="flex-1">
           <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-            <p className="text-gray-400 text-sm">
-              {products.length} {products.length === 1 ? 'resultado' : 'resultados'}
-            </p>
+            <p className="text-gray-400 text-sm">{pagination.totalProducts || 0} {pagination.totalProducts === 1 ? 'resultado' : 'resultados'}</p>
             <div>
               <label htmlFor="sort" className="mr-2 text-sm">Ordenar por:</label>
               <select id="sort" value={sort} onChange={(e) => setSort(e.target.value)} className="bg-slate-700 rounded-md p-2 text-sm focus:ring-emerald-500 focus:border-emerald-500">
@@ -148,10 +161,14 @@ function ProductsPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-20">
-                  <p className="text-gray-400">No se encontraron productos que coincidan con tus filtros.</p>
-                </div>
+                <div className="text-center py-20"><p className="text-gray-400">No se encontraron productos que coincidan con tus filtros.</p></div>
               )}
+
+              <Pagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                onPageChange={handlePageChange}
+              />
             </>
           )}
         </main>
