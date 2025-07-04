@@ -12,15 +12,12 @@ function PlaceOrderPage() {
   const { user, token } = useAuthStore();
   const { items, shippingAddress, paymentMethod, clearCart } = useCartStore();
 
-  // Redirige si falta algún paso previo
   useEffect(() => {
     if (!shippingAddress.address) navigate('/envio');
     if (!paymentMethod) navigate('/pago');
   }, [shippingAddress, paymentMethod, navigate]);
 
-  // --- Cálculos del Pedido ---
   const itemsPrice = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  // Lógica de envío y impuestos (simplificada por ahora)
   const shippingPrice = itemsPrice > 100 ? 0 : 10;
   const taxPrice = Number((0.15 * itemsPrice).toFixed(2));
   const totalPrice = (itemsPrice + shippingPrice + taxPrice);
@@ -28,10 +25,7 @@ function PlaceOrderPage() {
   const placeOrderHandler = async () => {
     const toastId = toast.loading('Procesando tu pedido...');
     try {
-      const config = {
-        headers: { Authorization: `Bearer ${token}` }
-      };
-
+      const config = { headers: { Authorization: `Bearer ${token}` } };
       const orderData = {
         orderItems: items.map(item => ({...item, product: item._id })),
         shippingAddress: shippingAddress,
@@ -43,10 +37,10 @@ function PlaceOrderPage() {
 
       clearCart();
       toast.success('¡Pedido realizado con éxito!', { id: toastId });
-      // Redirigimos a una futura página de detalle del pedido
-      // Por ahora, redirigimos al inicio
-      navigate(`/`); 
-      // En el futuro sería: navigate(`/pedido/${data._id}`);
+      
+      // --- CAMBIO EN LA REDIRECCIÓN ---
+      // Redirigimos a la página de detalle del pedido recién creado.
+      navigate(`/pedido/${data._id}`); 
 
     } catch (error) {
       toast.error(error.response?.data?.message || 'No se pudo realizar el pedido.', { id: toastId });
@@ -59,17 +53,17 @@ function PlaceOrderPage() {
       <div className="grid md:grid-cols-3 gap-8">
         <div className="md:col-span-2">
           <div className="space-y-6">
-            {/* --- Dirección de Envío --- */}
             <div className="bg-slate-800 p-4 rounded-lg">
               <h2 className="text-2xl font-bold mb-2">Envío</h2>
+              {/* --- MOSTRAMOS LOS NUEVOS DATOS --- */}
+              <p><strong>Recibe:</strong> {shippingAddress.fullName}</p>
+              <p><strong>Celular:</strong> {shippingAddress.phone}</p>
               <p><strong>Dirección:</strong> {shippingAddress.address}, {shippingAddress.city}, {shippingAddress.postalCode}, {shippingAddress.country}</p>
             </div>
-            {/* --- Método de Pago --- */}
             <div className="bg-slate-800 p-4 rounded-lg">
               <h2 className="text-2xl font-bold mb-2">Método de Pago</h2>
               <p><strong>Método:</strong> {paymentMethod}</p>
             </div>
-            {/* --- Artículos del Pedido --- */}
             <div className="bg-slate-800 p-4 rounded-lg">
               <h2 className="text-2xl font-bold mb-2">Artículos del Pedido</h2>
               {items.length === 0 ? <p>Tu carrito está vacío</p> : (
@@ -86,7 +80,6 @@ function PlaceOrderPage() {
             </div>
           </div>
         </div>
-        {/* --- Resumen del Pedido --- */}
         <div className="bg-slate-800 p-6 rounded-lg self-start sticky top-28">
           <h2 className="text-2xl font-bold mb-4">Resumen del Pedido</h2>
           <div className="space-y-2">
@@ -96,11 +89,7 @@ function PlaceOrderPage() {
             <hr className="border-slate-700 my-2" />
             <div className="flex justify-between font-bold text-xl"><span>Total:</span><span>${totalPrice.toFixed(2)}</span></div>
           </div>
-          <button 
-            onClick={placeOrderHandler}
-            disabled={items.length === 0}
-            className="w-full mt-6 bg-emerald-600 text-white py-3 rounded-lg font-bold hover:bg-emerald-700 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed"
-          >
+          <button onClick={placeOrderHandler} disabled={items.length === 0} className="w-full mt-6 bg-emerald-600 text-white py-3 rounded-lg font-bold hover:bg-emerald-700 ...">
             Realizar Pedido
           </button>
         </div>
