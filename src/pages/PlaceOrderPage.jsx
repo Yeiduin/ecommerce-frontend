@@ -17,10 +17,10 @@ function PlaceOrderPage() {
     if (!paymentMethod) navigate('/pago');
   }, [shippingAddress, paymentMethod, navigate]);
 
+  // Cálculos sin impuestos
   const itemsPrice = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const shippingPrice = itemsPrice > 100 ? 0 : 10;
-  const taxPrice = Number((0.15 * itemsPrice).toFixed(2));
-  const totalPrice = (itemsPrice + shippingPrice + taxPrice);
+  const totalPrice = itemsPrice + shippingPrice;
 
   const placeOrderHandler = async () => {
     const toastId = toast.loading('Procesando tu pedido...');
@@ -38,8 +38,6 @@ function PlaceOrderPage() {
       clearCart();
       toast.success('¡Pedido realizado con éxito!', { id: toastId });
       
-      // --- CAMBIO EN LA REDIRECCIÓN ---
-      // Redirigimos a la página de detalle del pedido recién creado.
       navigate(`/pedido/${data._id}`); 
 
     } catch (error) {
@@ -55,7 +53,6 @@ function PlaceOrderPage() {
           <div className="space-y-6">
             <div className="bg-slate-800 p-4 rounded-lg">
               <h2 className="text-2xl font-bold mb-2">Envío</h2>
-              {/* --- MOSTRAMOS LOS NUEVOS DATOS --- */}
               <p><strong>Recibe:</strong> {shippingAddress.fullName}</p>
               <p><strong>Celular:</strong> {shippingAddress.phone}</p>
               <p><strong>Dirección:</strong> {shippingAddress.address}, {shippingAddress.city}, {shippingAddress.postalCode}, {shippingAddress.country}</p>
@@ -85,11 +82,14 @@ function PlaceOrderPage() {
           <div className="space-y-2">
             <div className="flex justify-between"><span>Subtotal:</span><span>${itemsPrice.toFixed(2)}</span></div>
             <div className="flex justify-between"><span>Envío:</span><span>${shippingPrice.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>Impuestos:</span><span>${taxPrice.toFixed(2)}</span></div>
             <hr className="border-slate-700 my-2" />
             <div className="flex justify-between font-bold text-xl"><span>Total:</span><span>${totalPrice.toFixed(2)}</span></div>
           </div>
-          <button onClick={placeOrderHandler} disabled={items.length === 0} className="w-full mt-6 bg-emerald-600 text-white py-3 rounded-lg font-bold hover:bg-emerald-700 ...">
+          <button 
+            onClick={placeOrderHandler}
+            disabled={items.length === 0}
+            className="w-full mt-6 bg-emerald-600 text-white py-3 rounded-lg font-bold hover:bg-emerald-700 transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed"
+          >
             Realizar Pedido
           </button>
         </div>

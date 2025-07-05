@@ -1,14 +1,14 @@
 // src/pages/OrderDetailPage.jsx
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import useAuthStore from '../stores/authStore';
 
 function OrderDetailPage() {
   const { id: orderId } = useParams();
-  const { token } = useAuthStore();
-
+  const navigate = useNavigate();
+  const { user, token } = useAuthStore();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,7 +27,6 @@ function OrderDetailPage() {
       } catch (err) {
         setError('No se pudo cargar el pedido. Es posible que no tengas permiso para verlo.');
         toast.error('No se pudo cargar el pedido.');
-        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -36,7 +35,14 @@ function OrderDetailPage() {
     fetchOrder();
   }, [orderId, token]);
 
-  // --- NUEVO: Estilos para el estado del pedido ---
+  const handleGoBack = () => {
+    if (user && user.role === 'admin') {
+      navigate('/admin/pedidos');
+    } else {
+      navigate('/perfil');
+    }
+  };
+  
   const statusStyles = {
     "En proceso": "bg-blue-500/20 text-blue-300",
     "Enviado": "bg-yellow-500/20 text-yellow-300",
@@ -48,13 +54,21 @@ function OrderDetailPage() {
   if (error) return <p className="text-center py-10 text-red-500">{error}</p>;
   if (!order) return <p className="text-center py-10">Pedido no encontrado.</p>;
 
-  // Cálculo de precios para el resumen
+  // Cálculos sin impuestos
   const itemsPrice = order.orderItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  const shippingPrice = itemsPrice > 100 ? 0 : 10;
-  const taxPrice = order.totalPrice - itemsPrice - shippingPrice;
+  const shippingPrice = order.totalPrice - itemsPrice;
 
   return (
     <div className="container mx-auto py-8">
+      <button onClick={handleGoBack} className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+        </svg>
+        <span>
+            {user && user.role === 'admin' ? 'Volver a todos los pedidos' : 'Volver a mi perfil'}
+        </span>
+      </button>
+
       <h1 className="text-3xl font-bold mb-4">Detalles del Pedido #{order.orderNumber}</h1>
       <p className="text-sm text-gray-400 mb-6">ID de referencia: {order._id}</p>
 
@@ -63,12 +77,10 @@ function OrderDetailPage() {
           <div className="space-y-6">
             <div className="bg-slate-800 p-4 sm:p-6 rounded-lg">
               <h2 className="text-2xl font-bold mb-4">Envío</h2>
-              <p><strong>Nombre:</strong> {order.user.name}</p>
+              <p><strong>Nombre:</strong> {order.shippingAddress.fullName}</p>
               <p><strong>Email:</strong> <a href={`mailto:${order.user.email}`} className="text-emerald-400">{order.user.email}</a></p>
               <p><strong>Dirección:</strong> {order.shippingAddress.address}, {order.shippingAddress.city}, {order.shippingAddress.postalCode}, {order.shippingAddress.country}</p>
               
-              {/* --- CAMBIO PRINCIPAL AQUÍ --- */}
-              {/* Mostramos el nuevo estado del pedido con su estilo correspondiente */}
               <div className={`mt-4 p-3 rounded-lg text-center font-semibold ${statusStyles[order.status] || 'bg-gray-700'}`}>
                 {order.status}
               </div>
@@ -96,7 +108,6 @@ function OrderDetailPage() {
           <div className="space-y-2">
             <div className="flex justify-between"><span>Subtotal:</span><span>${itemsPrice.toFixed(2)}</span></div>
             <div className="flex justify-between"><span>Envío:</span><span>${shippingPrice.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>Impuestos:</span><span>${taxPrice.toFixed(2)}</span></div>
             <hr className="border-slate-700 my-2" />
             <div className="flex justify-between font-bold text-xl"><span>Total:</span><span>${order.totalPrice.toFixed(2)}</span></div>
           </div>

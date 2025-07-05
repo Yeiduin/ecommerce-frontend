@@ -22,6 +22,9 @@ function AdminLayout() {
               <li className="mb-2">
                 <NavLink to="/admin/pedidos" className={({ isActive }) => isActive ? activeLinkClasses : baseLinkClasses}>Gestionar Pedidos</NavLink>
               </li>
+              <li className="mb-2">
+              <NavLink to="/admin/tickets" className={({ isActive }) => isActive ? activeLinkClasses : baseLinkClasses}>Gestionar Tickets</NavLink>
+            </li>
                 <li className="mb-2">
                 <NavLink to="/admin/usuarios" className={({ isActive }) => isActive ? activeLinkClasses : baseLinkClasses}>Gestionar Usuarios</NavLink>
               </li>

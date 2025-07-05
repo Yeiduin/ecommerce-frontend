@@ -1,6 +1,6 @@
 // src/pages/ProductDetailPage.jsx
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import useCartStore from '../stores/cartStore';
 import useAuthStore from '../stores/authStore';
@@ -27,6 +27,7 @@ const StarRating = ({ rating, numReviews }) => {
 
 function ProductDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -89,13 +90,26 @@ function ProductDetailPage() {
     setQuantity(value);
   }
 
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
   if (loading || !product) { 
     return <p className="text-center py-20">Cargando...</p>; 
   }
 
   return (
-    <div className="py-8">
-      <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12">
+    <div className="container mx-auto px-4 py-8">
+      {/* --- UBICACIÓN CORREGIDA DEL BOTÓN --- */}
+      {/* Lo movemos aquí, dentro del contenedor principal */}
+      <button onClick={handleGoBack} className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+        </svg>
+        <span>Volver a la tienda</span>
+      </button>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         <div>
           <img src={product.image || 'https://via.placeholder.com/800x600'} alt={`Imagen de ${product.name}`} className="w-full rounded-lg shadow-lg sticky top-28"/>
         </div>
@@ -113,7 +127,6 @@ function ProductDetailPage() {
             <p className="text-gray-300 leading-relaxed">{product.description || "No hay descripción disponible."}</p>
           </div>
           
-          {/* --- BLOQUE DE CÓDIGO RESTAURADO --- */}
           <div className="bg-slate-800 p-6 rounded-lg">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -135,8 +148,6 @@ function ProductDetailPage() {
               {product.stock > 0 ? 'Agregar al Carrito' : 'Agotado'}
             </button>
           </div>
-          {/* --- FIN DEL BLOQUE RESTAURADO --- */}
-
         </div>
       </div>
       

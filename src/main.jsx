@@ -20,12 +20,14 @@ import ShippingPage from './pages/ShippingPage.jsx';
 import PaymentPage from './pages/PaymentPage.jsx'; // Importa la nueva página
 import PlaceOrderPage from './pages/PlaceOrderPage.jsx';
 import OrderDetailPage from './pages/OrderDetailPage.jsx';
+import TicketDetailPage from './pages/TicketDetailPage.jsx';  
 
 import AdminDashboardPage from './pages/admin/AdminDashboardPage.jsx';
 import AdminProductsPage from './pages/admin/AdminProductsPage.jsx';
 import AdminProductFormPage from './pages/admin/AdminProductFormPage.jsx';
 import AdminOrdersPage from './pages/admin/AdminOrdersPage.jsx';
 import AdminUsersPage from './pages/admin/AdminUsersPage.jsx';
+import AdminTicketsPage from './pages/admin/AdminTicketsPage.jsx';
 
 import './index.css';
 
@@ -47,6 +49,7 @@ const router = createBrowserRouter([
       { path: "realizar-pedido", element: <ProtectedRoute><PlaceOrderPage /></ProtectedRoute> },
       { path: "perfil", element: <ProtectedRoute><ProfilePage /></ProtectedRoute> },
       { path: "pedido/:id", element: <ProtectedRoute><OrderDetailPage /></ProtectedRoute> },
+      { path: "ticket/:id", element: <ProtectedRoute><TicketDetailPage /></ProtectedRoute> },
     ],
   },
   {
@@ -58,6 +61,8 @@ const router = createBrowserRouter([
       { path: "productos/nuevo", element: <AdminProductFormPage /> },
       { path: "productos/editar/:id", element: <AdminProductFormPage /> },
       { path: "pedidos", element: <AdminOrdersPage /> },
+       { path: "tickets", element: <AdminTicketsPage /> },
+      { path: "tickets/:id", element: <TicketDetailPage /> },
       { path: "usuarios", element: <AdminUsersPage /> },
     ],
   },
