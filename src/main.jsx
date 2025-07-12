@@ -28,8 +28,11 @@ import AdminProductFormPage from './pages/admin/AdminProductFormPage.jsx';
 import AdminOrdersPage from './pages/admin/AdminOrdersPage.jsx';
 import AdminUsersPage from './pages/admin/AdminUsersPage.jsx';
 import AdminTicketsPage from './pages/admin/AdminTicketsPage.jsx';
+import AdminBannersPage from './pages/admin/AdminBannersPage.jsx';
 
 import './index.css';
+import "slick-carousel/slick/slick.css"; 
+import "slick-carousel/slick/slick-theme.css";
 
 const router = createBrowserRouter([
   {
@@ -61,6 +64,7 @@ const router = createBrowserRouter([
       { path: "productos/nuevo", element: <AdminProductFormPage /> },
       { path: "productos/editar/:id", element: <AdminProductFormPage /> },
       { path: "pedidos", element: <AdminOrdersPage /> },
+      { path: "banners", element: <AdminBannersPage /> },
        { path: "tickets", element: <AdminTicketsPage /> },
       { path: "tickets/:id", element: <TicketDetailPage /> },
       { path: "usuarios", element: <AdminUsersPage /> },
